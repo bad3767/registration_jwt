@@ -1,34 +1,33 @@
 const database = require("../models/user");
 const sendMail = require("../middleware/email_connector");
 const jwt_token = require("../middleware/auth");
-const jwt = require("jsonwebtoken");
-const secretKey = "your_secret_key";
 
 // user login
 exports.userlogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const ext_doc = await database.findOne({ email: email });
-    console.log("ext_doc: ", ext_doc);
-    console.log("ext_doc.status: ", ext_doc.status);
+    console.log('ext_doc: ', ext_doc);
+    console.log('ext_doc.status: ', ext_doc.status);
     if (ext_doc && ext_doc.status === "Active") {
       if (ext_doc.password === password) {
         console.log("login successfully");
+        let decode = helper.jwtDecode(req.headers.authorization.split(' ')[1])
+        console.log('decode: ', decode);
+    
         res.send({ status: true, msg: "login successfully" });
       } else {
         res.send("Please enter the correct password ");
       }
     } else {
       console.log("Your data is not registered. kindly register.");
-      res.send({
-        status: false,
-        msg: "Your data is not registered. kindly register.",
-      });
+      res.send({ status: false, msg: "Your data is not registered. kindly register." });
     }
   } catch (error) {
     console.log("error:", error);
   }
 };
+
 
 // otp verify
 exports.otp_verify = async (req, res) => {
@@ -40,16 +39,16 @@ exports.otp_verify = async (req, res) => {
       database
         .updateOne({ email: email }, { $set: { status: "Active" } })
         .then((obj) => {
+          const token = jwt_token.jwt_generate(ext_doc._id)
+            console.log('token: ', token);
+
           if (obj) {
-            const payload = { sub: "your_user_id", iat: Date.now() };
-            const token = jwt.sign(payload, secretKey);
-            console.log(token);
-            res.send({
-              status: true,
-              msg: "Your account is Active",
-              data: obj,
-              token: token,
-            });
+           
+            
+            console.log("Your account is Active");
+
+       res.send ({status:true,msg:"your account is active",data:token})
+
           } else {
             console.log(
               "Your account is not active. Please verify your password."
