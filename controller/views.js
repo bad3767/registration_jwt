@@ -1,14 +1,16 @@
 const database = require("../models/user");
 const sendMail = require("../middleware/email_connector");
 const jwt_token = require("../middleware/auth");
+const jwt = require("jsonwebtoken");
+const secretKey = "your_secret_key";
 
 // user login
 exports.userlogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const ext_doc = await database.findOne({ email: email });
-    console.log('ext_doc: ', ext_doc);
-    console.log('ext_doc.status: ', ext_doc.status);
+    console.log("ext_doc: ", ext_doc);
+    console.log("ext_doc.status: ", ext_doc.status);
     if (ext_doc && ext_doc.status === "Active") {
       if (ext_doc.password === password) {
         console.log("login successfully");
@@ -18,13 +20,15 @@ exports.userlogin = async (req, res) => {
       }
     } else {
       console.log("Your data is not registered. kindly register.");
-      res.send({ status: false, msg: "Your data is not registered. kindly register." });
+      res.send({
+        status: false,
+        msg: "Your data is not registered. kindly register.",
+      });
     }
   } catch (error) {
     console.log("error:", error);
   }
 };
-
 
 // otp verify
 exports.otp_verify = async (req, res) => {
@@ -37,11 +41,9 @@ exports.otp_verify = async (req, res) => {
         .updateOne({ email: email }, { $set: { status: "Active" } })
         .then((obj) => {
           if (obj) {
-            const token = jwt_token.jwt_generate()
-            console.log("Your account is Active");
-
-       
-
+            const payload = { sub: "your_user_id", iat: Date.now() };
+            const token = jwt.sign(payload, secretKey);
+            console.log(token);
             res.send({
               status: true,
               msg: "Your account is Active",

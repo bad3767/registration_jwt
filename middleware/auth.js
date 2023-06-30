@@ -3,18 +3,19 @@
 // const payload = { userId: 12345 }; // Example payload, you can customize it according to your needs
 // const token = jwt.sign(payload, secretKey);
 
-
-
-
-
-
-const keyfile = require("../config/keyfile");
 const jwt = require("jsonwebtoken");
+const secretKey = "your_secret_key";
+const payload = { sub: "your_user_id", iat: Date.now() };
+const token = jwt.sign(payload, secretKey);
+console.log(token);
 
-const secretKey = keyfile.JWT_SECRET;
+// const keyfile = require("../config/keyfile");
+// const jwt = require("jsonwebtoken");
 
-exports.jwt_generate = (key) => {
-  const jwt_generation = { subject: key };
-  const token = jwt.sign(jwt_generation, secretKey);
-  return token;
-};
+// const secretKey = keyfile.JWT_SECRET;
+
+// exports.jwt_generate = (key) => {
+//   const jwt_generation = { subject: key };
+//   const token = jwt.sign(jwt_generation, secretKey);
+//   return token;
+// };
