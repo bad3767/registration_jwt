@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controller/views");
-const jwt = require("../middleware/auth")
+const Authenticate = require("../middleware/auth");
 
-router.post("/register", controller.userRegister);
-router.post("/login",jwt.verifyPayload, controller.userlogin);
+router.post("/register",  controller.userRegister);
 router.post("/otp_verify", controller.otp_verify);
+router.post("/login", controller.userlogin);
+router.post("/add_users", Authenticate.jwt_verification, controller.add_users);
 
 module.exports = router;

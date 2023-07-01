@@ -3,6 +3,7 @@ const express = require("express");
 const cookieParser=require('cookie-parser')
 const app = express();
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 // email lib file import
 const nodemailer = require("nodemailer");

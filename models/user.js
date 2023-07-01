@@ -1,53 +1,20 @@
-// const mongoose = require("mongoose");
-// const Schema = mongoose.Schema;
-// const dataSchema = new Schema({
-//   name: String,
-//   email: {
-//     type: String,
-//     unique: true,
-//   },
-//   phone_number: {
-//     type: Number,
-//     unique: true,
-//   },
-//   otp: {
-//     type: Number,
-//   },
-//   password: String,
-// });
-
-// module.exports = mongoose.model("data", dataSchema);
-
-
-
-
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const dataSchema = new Schema({
+const userSchema = new Schema({
   name: String,
   email: {
     type: String,
-    unique: true,
+    // unique: true,
   },
-  phone_number: {
+  emp_Id: {
     type: Number,
-    unique: true,
+    // unique: true,
   },
-  otp: {
+  role: String,
+  salary: {
     type: String,
   },
-  password: String,
-  status:{
-    type:String,
-    default:"Inactive",
-  },
-  expirationTime:Date,
-
-
-  
-
-
 });
 
-module.exports = mongoose.model("data", dataSchema);
+module.exports = mongoose.model("user", userSchema);

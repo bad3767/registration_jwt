@@ -1,33 +1,36 @@
-const database = require("../models/user");
-const sendMail = require("../middleware/email_connector");
-const jwt_token = require("../middleware/auth");
+const key = process.env.JWT_SECRET_KEY;
 
-// user login
+const database = require("../models/admin");
+const sendMail = require("../middleware/email_connector");
+const jwt_generate = require("../middleware/auth");
+
 exports.userlogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const ext_doc = await database.findOne({ email: email });
-    console.log('ext_doc: ', ext_doc);
-    console.log('ext_doc.status: ', ext_doc.status);
     if (ext_doc && ext_doc.status === "Active") {
       if (ext_doc.password === password) {
-        console.log("login successfully");
-        let decode = helper.jwtDecode(req.headers.authorization.split(' ')[1])
-        console.log('decode: ', decode);
-    
-        res.send({ status: true, msg: "login successfully" });
+        // generating jwt token
+        const token = jwt_generate.jwt_generate(ext_doc._id);
+        console.log("token: ", token);
+        res.send({
+          status: true,
+          msg: "Your account is active",
+          data: token,
+        });
       } else {
-        res.send("Please enter the correct password ");
+        res.send("Please enter the correct password");
       }
     } else {
-      console.log("Your data is not registered. kindly register.");
-      res.send({ status: false, msg: "Your data is not registered. kindly register." });
+      res.send({
+        status: false,
+        msg: "Your data is not registered. Kindly register.",
+      });
     }
   } catch (error) {
-    console.log("error:", error);
+    console.log("Error:", error);
   }
 };
-
 
 // otp verify
 exports.otp_verify = async (req, res) => {
@@ -38,33 +41,47 @@ exports.otp_verify = async (req, res) => {
     if (ext_doc && ext_doc.otp === otp) {
       database
         .updateOne({ email: email }, { $set: { status: "Active" } })
-        .then((obj) => {
-          const token = jwt_token.jwt_generate(ext_doc._id)
-            console.log('token: ', token);
-
-          if (obj) {
-           
-            
-            console.log("Your account is Active");
-
-       res.send ({status:true,msg:"your account is active",data:token})
-
-          } else {
-            console.log(
-              "Your account is not active. Please verify your password."
-            );
-          }
+        .then((ext_doc) => {
+          console.log("ext_doc: ", ext_doc);
         })
         .catch((err) => {
           console.log("err: ", err);
-          res.status(500).json({ status: false, msg: "An error occurred" });
         });
+      console.log("otp verified");
+      res.send({ status: true, msg: "otp verified successfully" });
     } else {
+      if (ext_doc.otp === "expired") {
+        const newotpExpirationTime = 30 * 1000;
+        const new_otp_generate = Math.floor(Math.random() * 8999 + 1000 ).toString();
+        console.log("OTP:", new_otp_generate);
+        database.findOneAndUpdate({ email: email },{$set: {otp: new_otp_generate,expirationTime: newotpExpirationTime}})
+          .then((result) => {
+            // if (result) {
+              sendMail.send_email(object.email, new_otp_generate);
+              res.json({ status: true,msg: "User created successfully",data: result})
+              if (ext_doc && ext_doc.otp === otp) {
+                database
+                  .updateOne({ email: email }, { $set: { status: "Active" } })
+                  .then((ext_doc) => {
+                    console.log("ext_doc: ", ext_doc);
+                  })
+                  .catch((err) => {
+                    console.log("err: ", err);
+                  });
+                console.log("otp verified");
+                res.send({ status: true, msg: "otp verified successfully" });}
+            // } else {
+            //   console.log("No OTP");
+            // }
+          })
+          .catch((err) => {
+            console.log("err: ", err);
+            console.error("err:", err);
+          });
+      }
       console.log("OTP is incorrect or expired. Please try again.");
       res.send("OTP is incorrect or expired. Please try again.");
     }
-
-    // Remaining code...
   } catch (error) {
     console.log("error:", error);
     res.status(500).json({ status: false, msg: "An error occurred" });
@@ -75,7 +92,7 @@ exports.otp_verify = async (req, res) => {
 exports.userRegister = async (req, res) => {
   const otpExpirationTime = 30 * 1000;
   const otp_generate = Math.floor(Math.random() * 8999 + 1000).toString();
-  console.log("OTP:", otp_generate);
+  
   try {
     const object = {
       name: req.body.name,
@@ -120,6 +137,29 @@ exports.userRegister = async (req, res) => {
   } catch (error) {
     console.log("error:", error);
     res.json({ status: false, msg: "Your data is not saved", error });
+  }
+};
+
+const client = require("../models/user");
+
+exports.add_users = async (req, res) => {
+  try {
+    const info = req.body;
+    const user = {
+      name: info.name,
+      email: info.email,
+      emp_Id: info.emp_Id,
+      role: info.role,
+      salary: info.salary,
+    };
+    const result = await client.create(user);
+    if (result) {
+      res.send({ status: true, msg: "user created successfully" });
+    } else {
+      res.send({ status: false, msg: "users not created" });
+    }
+  } catch (error) {
+    console.log("error: ", error);
   }
 };
 
