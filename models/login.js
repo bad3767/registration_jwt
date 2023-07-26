@@ -20,7 +20,7 @@ const loginSchema = new Schema({
   
   employees_Id: {
     type: String,
-    required: true,
+    // required: true,
   },
   domain: String,
 });

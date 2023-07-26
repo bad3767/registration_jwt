@@ -8,6 +8,8 @@ router.post("/otp_verify", controller.otp_verify);
 router.post("/login", controller.userlogin);
 router.post("/add_users", Authenticate.jwt_verification, controller.add_users);
 router.post("/user_login", controller.user_login);
+router.post ("/forgotPassword",controller.forgotPassword)
+router.post ("/reset_password",controller.reset_password)
 
 
 module.exports = router;

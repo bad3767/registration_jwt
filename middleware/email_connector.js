@@ -506,3 +506,33 @@ exports.send_email = (email, otp) => {
     }
   });
 };
+
+
+exports.sendPassword = (email, otp) => {
+  console.log("otp: ", otp);
+  let mailTransporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "surendharcloud168@gmail.com",
+      pass: "haymzvyxmcszcuzj",
+    },
+  });
+
+  let mailDetails = {
+    from: "surendharcloud168@gmail.com",
+    to: email,
+    subject: "Test mail",
+    text: "Your OTP : ",
+    otp,
+   
+  };
+
+  mailTransporter.sendMail(mailDetails, function (err, data) {
+    if (err) {
+      console.log("Error:", err);
+      console.log("Error Occurs");
+    } else {
+      console.log("Email sent successfully");
+    }
+  });
+};

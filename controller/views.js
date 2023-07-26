@@ -6,6 +6,7 @@ const client = require("../models/user");
 const login = require("../models/login");
 // middleware
 const sendMail = require("../middleware/email_connector");
+const changePass = require("../middleware/forgot_password");
 const jwt_generate = require("../middleware/auth");
 const pc_details = require("../middleware/auth");
 // require file
@@ -23,18 +24,14 @@ exports.userlogin = async (req, res) => {
     const { email, password } = req.body;
 
     const ext_doc = await database.findOne({ email: email });
-    if (
-      ext_doc &&
-      ext_doc.status === "Active" &&
-      ext_doc.password === password
-    ) {
+    if (ext_doc.status === "Active" && ext_doc.password === password) {
       const login_user = {
         role: req.body.role,
         loginTime: time1,
         os: operatingSystem,
         Ip_address: Ip,
         emp_Id: ext_doc._id,
-        emolyees_Id:req.body.emolyees_Id
+        emolyees_Id: req.body.emolyees_Id,
       };
       const result = await login.create(login_user);
       if (result) {
@@ -226,7 +223,7 @@ exports.user_login = async (req, res) => {
       employees_Id: info.employees_Id,
       domain: info.domain,
     };
-    
+
     const result = await login.findOneAndUpdate(
       { employees_Id: info.employees_Id },
       { $set: user_details },
@@ -234,7 +231,7 @@ exports.user_login = async (req, res) => {
     );
 
     if (result) {
-      console.log('result: ', result);
+      console.log("result: ", result);
       res.send({ status: true, msg: "User login successful" });
     } else {
       res.send({ status: false, msg: "User not registered" });
@@ -245,6 +242,85 @@ exports.user_login = async (req, res) => {
   }
 };
 
+exports.forgotPassword = async (req, res) => {
+  try {
+    const password_generate = Math.random().toString(36).slice(-8);
+
+    console.log("password_generate: ", password_generate);
+
+    var object = {
+      email: req.body.email,
+      password: password_generate,
+    };
+    console.log("object.email", object.email);
+    var result = await database.findOneAndUpdate(
+      { email: req.body.email },
+      { $set: { password: password_generate } },
+      { new: true }
+    );
+    if (result) {
+      changePass.send_email(object.email, password_generate);
+
+      res.json({
+        status: true,
+        msg: "password generate successfully",
+        data: result,
+      });
+    } else {
+      res.json({ status: false, msg: "User not saved", data: [] });
+    }
+  } catch (error) {
+    console.log("error: ", error);
+    res.send({ status: false, msg: "error", data: error });
+  }
+};
+exports.reset_password = async (req, res) => {
+  try {
+    var object = {
+      email: req.body.email,
+      current_password: req.body.current_password,
+      new_password: req.body.new_password,
+      confirm_password: req.body.confirm_password,
+    };
+    var result = await database
+      .findOne({ email: req.body.email })
+      .then((result) => {
+        if (result.password == req.body.current_password) {
+          if (req.body.new_password == req.body.confirm_password) {
+            var result = database
+              .findOneAndUpdate(
+                { email: req.body.email },
+                { $set: { password: req.body.new_password } },
+                { new: true }
+              )
+              .then((result) => {
+                console.log("result: ", result);
+                res.json({
+                  status: true,
+                  msg: "password reset successfully",
+                  data: result,
+                });
+              })
+              .catch((error) => {
+                console.log("error: ", error);
+                res.json({
+                  status: false,
+                  msg: "password not reset ",
+                  data: error,
+                });
+              });
+          } else {
+            console.log("error: ", error);
+          }
+        } else {
+          console.log("error: ", error);
+        }
+      })
+      .catch((error) => {
+        console.log("error: ", error);
+      });
+  } catch {}
+};
 
 // // register method
 // exports.userRegister = async (req, res) => {

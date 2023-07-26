@@ -35,6 +35,7 @@ const dataSchema = new Schema({
     type: String,
   },
   password: String,
+  
   status: {
     type: String,
     default: "Inactive",
