@@ -13,6 +13,7 @@ const pc_details = require("../middleware/auth");
 const os = require("os");
 const moment = require("moment");
 const { time } = require("console");
+var cron = require("node-cron");
 
 exports.userlogin = async (req, res) => {
   time1 = moment().format("dddd, MMMM Do YYYY, h:mm:ss a");
@@ -259,8 +260,11 @@ exports.forgotPassword = async (req, res) => {
       { new: true }
     );
     if (result) {
-      changePass.send_email(object.email, password_generate);
+      cron.schedule("*/5 * * * *", () => {
+        console.log("running a task every minute");
 
+        changePass.send_email(object.email, password_generate);
+      });
       res.json({
         status: true,
         msg: "password generate successfully",
@@ -321,6 +325,27 @@ exports.reset_password = async (req, res) => {
       });
   } catch {}
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // // register method
 // exports.userRegister = async (req, res) => {
