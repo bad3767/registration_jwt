@@ -71,6 +71,58 @@ exports.userlogin = async (req, res) => {
   }
 };
 
+// Register method
+exports.userRegister = async (req, res) => {
+  const otpExpirationTime = 30 * 1000;
+  const otp_generate = Math.floor(Math.random() * 8999 + 1000).toString();
+
+  try {
+    const object = {
+      name: req.body.name,
+      email: req.body.email,
+      phone_number: req.body.phone_number,
+      password: req.body.password,
+      otp: otp_generate,
+      expirationTime: otpExpirationTime,
+    };
+    const result = database.create(object);
+
+    setTimeout(() => {
+      if (Date.now() > otpExpirationTime) {
+        database
+          .findOneAndUpdate({ otp: object.otp }, { $set: { otp: "expired" } })
+          .then((obj) => {
+            if (obj) {
+              console.log("OTP expired");
+            } else {
+              console.log("No OTP");
+            }
+          })
+
+          .catch((err) => {
+            console.log("err: ", err);
+            console.error("err:", err);
+          });
+      }
+    }, 30 * 1000);
+
+    if (result) {
+      sendMail.send_email(object.email, otp_generate);
+
+      res.json({
+        status: true,
+        msg: "User created successfully",
+        data: result,
+      });
+    } else {
+      res.json({ status: false, msg: "User not saved", data: [] });
+    }
+  } catch (error) {
+    console.log("error:", error);
+    res.json({ status: false, msg: "Your data is not saved", error });
+  }
+};
+
 // otp verify
 exports.otp_verify = async (req, res) => {
   try {
@@ -139,58 +191,6 @@ exports.otp_verify = async (req, res) => {
   } catch (error) {
     console.log("error:", error);
     res.status(500).json({ status: false, msg: "An error occurred" });
-  }
-};
-
-// Register method
-exports.userRegister = async (req, res) => {
-  const otpExpirationTime = 30 * 1000;
-  const otp_generate = Math.floor(Math.random() * 8999 + 1000).toString();
-
-  try {
-    const object = {
-      name: req.body.name,
-      email: req.body.email,
-      phone_number: req.body.phone_number,
-      password: req.body.password,
-      otp: otp_generate,
-      expirationTime: otpExpirationTime,
-    };
-    const result = database.create(object);
-
-    setTimeout(() => {
-      if (Date.now() > otpExpirationTime) {
-        database
-          .findOneAndUpdate({ otp: object.otp }, { $set: { otp: "expired" } })
-          .then((obj) => {
-            if (obj) {
-              console.log("OTP expired");
-            } else {
-              console.log("No OTP");
-            }
-          })
-
-          .catch((err) => {
-            console.log("err: ", err);
-            console.error("err:", err);
-          });
-      }
-    }, 30 * 1000);
-
-    if (result) {
-      sendMail.send_email(object.email, otp_generate);
-
-      res.json({
-        status: true,
-        msg: "User created successfully",
-        data: result,
-      });
-    } else {
-      res.json({ status: false, msg: "User not saved", data: [] });
-    }
-  } catch (error) {
-    console.log("error:", error);
-    res.json({ status: false, msg: "Your data is not saved", error });
   }
 };
 
@@ -325,27 +325,6 @@ exports.reset_password = async (req, res) => {
       });
   } catch {}
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // // register method
 // exports.userRegister = async (req, res) => {
