@@ -4,9 +4,18 @@ const cookieParser=require('cookie-parser')
 const app = express();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
+const logger = require ('morgan')
+app.use(logger("dev"));
 // email lib file import
 const nodemailer = require("nodemailer");
+
+
+
+// const session = require('express-session')
+// app.use(session({
+//   secret:"thisismysecretdontellanyone!"
+// }))
+
 
 // redirect to router
 const userRouter = require("./routes/router");

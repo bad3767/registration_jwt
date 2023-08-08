@@ -4,6 +4,7 @@ const key = process.env.JWT_SECRET_KEY;
 const database = require("../models/admin");
 const client = require("../models/user");
 const login = require("../models/login");
+const index = require("../models/indexes");
 // middleware
 const sendMail = require("../middleware/email_connector");
 const changePass = require("../middleware/forgot_password");
@@ -14,7 +15,7 @@ const os = require("os");
 const moment = require("moment");
 const { time } = require("console");
 var cron = require("node-cron");
-
+// login
 exports.userlogin = async (req, res) => {
   time1 = moment().format("dddd, MMMM Do YYYY, h:mm:ss a");
   const ipAddress = pc_details.get_details();
@@ -57,7 +58,7 @@ exports.userlogin = async (req, res) => {
           });
         })
         .catch((error) => {
-          console.log("error: ", error);
+          res.json({ status: false, error });
         });
       // }
     } else {
@@ -67,10 +68,9 @@ exports.userlogin = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("Error:", error);
+    res.json({ status: false, error });
   }
 };
-
 // Register method
 exports.userRegister = async (req, res) => {
   const otpExpirationTime = 30 * 1000;
@@ -100,8 +100,7 @@ exports.userRegister = async (req, res) => {
           })
 
           .catch((err) => {
-            console.log("err: ", err);
-            console.error("err:", err);
+            res.json({ status: false, error });
           });
       }
     }, 30 * 1000);
@@ -122,7 +121,6 @@ exports.userRegister = async (req, res) => {
     res.json({ status: false, msg: "Your data is not saved", error });
   }
 };
-
 // otp verify
 exports.otp_verify = async (req, res) => {
   try {
@@ -193,7 +191,7 @@ exports.otp_verify = async (req, res) => {
     res.status(500).json({ status: false, msg: "An error occurred" });
   }
 };
-
+// add users by admin
 exports.add_users = async (req, res) => {
   try {
     const info = req.body;
@@ -214,7 +212,7 @@ exports.add_users = async (req, res) => {
     console.log("error: ", error);
   }
 };
-
+// demo userlogin
 exports.user_login = async (req, res) => {
   try {
     const info = req.body;
@@ -242,7 +240,7 @@ exports.user_login = async (req, res) => {
     res.json({ status: false });
   }
 };
-
+// forgot password
 exports.forgotPassword = async (req, res) => {
   try {
     const password_generate = Math.random().toString(36).slice(-8);
@@ -278,6 +276,7 @@ exports.forgotPassword = async (req, res) => {
     res.send({ status: false, msg: "error", data: error });
   }
 };
+// reset password
 exports.reset_password = async (req, res) => {
   try {
     var object = {
@@ -325,7 +324,84 @@ exports.reset_password = async (req, res) => {
       });
   } catch {}
 };
+// proceting demo route
+exports.protectedRoute = (req, res) => {
+  res.send("Access granted to protected route!");
+};
+// ip access for admin system
+exports.authorizedPC = async (req, res) => {
+  const clientIp =
+    req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  // const clientIp = '192.168.230.46'
+  console.log("clientIp: ", clientIp);
 
+  // Check if the client's IP matches your PC's IP
+  if (clientIp == "192.168.230.46") {
+    console.log("---------------------------");
+    res.send({ status: true, msg: "premission granted" });
+  } else {
+    // Deny access for other IPs
+    res
+      .status(403)
+      .json({ error: "Permission denied. Access only from authorized PC." });
+  }
+};
+// mongodb indexes
+// const User = require("./models/user"); // Import your Mongoose model for the collection
+
+exports.indexes = async (req, res) => {
+  try {
+    const object = {
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password, // Note: Is this correct? It seems you're using email as the password
+    };
+
+    console.log("object: ", object);
+    // Create indexes for the specified fields
+    await index
+      .createIndexes({ object })
+      .then((result) => {
+        console.log("result: ", result);
+        res.json({ status: true, msg: "Indexes created", data: result });
+      })
+      .catch((error) => {
+        console.log("error: ", error);
+        res.json({
+          status: false,
+          msg: "Failed to create indexes",
+          data: error,
+        });
+      });
+  } catch (error) {
+    console.log("error: ", error);
+    res.json({ status: false, msg: "Error in try-catch", data: error });
+  }
+};
+// rename
+exports.rename = async (req, res) => {
+  try {
+    await login
+      .updateMany({}, { $rename: { os: "operating system" } })
+      .then((rename) => {
+        res.json({
+          status: true,
+          msg: "data all are rename in database",
+          data: rename,
+        });
+      })
+      .catch((error) => {
+        res.json({
+          status: false,
+          msg: "data not save in database",
+          data: error,
+        });
+      });
+  } catch (error) {
+    res.json({ status: false, msg: "invalid", data: error });
+  }
+};
+// ------------------------------------
 // // register method
 // exports.userRegister = async (req, res) => {
 //   try {

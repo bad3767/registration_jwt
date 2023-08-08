@@ -25,7 +25,7 @@ const dataSchema = new Schema({
   name: String,
   email: {
     type: String,
-    // unique: true,
+  
   },
   phone_number: {
     type: Number,

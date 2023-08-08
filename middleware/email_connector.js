@@ -9,7 +9,6 @@ exports.send_email = (email, otp) => {
       pass: "haymzvyxmcszcuzj",
     },
   });
-
   let mailDetails = {
     from: "surendharcloud168@gmail.com",
     to: email,
@@ -496,7 +495,6 @@ exports.send_email = (email, otp) => {
   </body>
 </html>`,
   };
-
   mailTransporter.sendMail(mailDetails, function (err, data) {
     if (err) {
       console.log("Error:", err);
@@ -506,7 +504,6 @@ exports.send_email = (email, otp) => {
     }
   });
 };
-
 
 exports.sendPassword = (email, otp) => {
   console.log("otp: ", otp);
@@ -524,7 +521,7 @@ exports.sendPassword = (email, otp) => {
     subject: "Test mail",
     text: "Your OTP : ",
     otp,
-   
+
   };
 
   mailTransporter.sendMail(mailDetails, function (err, data) {
