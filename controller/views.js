@@ -15,6 +15,9 @@ const os = require("os");
 const moment = require("moment");
 const { time } = require("console");
 var cron = require("node-cron");
+const async = require("async");
+const { response } = require("express");
+
 // login
 exports.userlogin = async (req, res) => {
   time1 = moment().format("dddd, MMMM Do YYYY, h:mm:ss a");
@@ -361,6 +364,7 @@ exports.indexes = async (req, res) => {
     // Create indexes for the specified fields
     await index
       .createIndexes({ object })
+
       .then((result) => {
         console.log("result: ", result);
         res.json({ status: true, msg: "Indexes created", data: result });
@@ -401,6 +405,69 @@ exports.rename = async (req, res) => {
     res.json({ status: false, msg: "invalid", data: error });
   }
 };
+// async parallel
+exports.asyncParallel = (req, res) => {
+  try {
+    async.parallel([
+      async.reflect(async () => await database.find({})),
+      async.reflect(async () => await login.find({})),
+      async.reflect(async () => await client.find({})),
+    ], (err, results) => {
+      if (err) {
+        return res.json(err);
+      }else{
+        const object = results.map(result => result.value)
+      // const response = object.assign()
+      const responce = object.flat()
+      res.json(responce)
+
+    }
+    });
+  } catch (error) {
+    // Handle any synchronous errors here
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// -------------------------------------------
+
+
+// ----------------------------------
+// exports.asyncParallel = (req, res) => {
+//   try {
+//     async.parallel([
+//       async.reflect(async () => await database.find({})),
+//       async.reflect(async () => await login.find({})),
+//       async.reflect(async () => await client.find()),
+//     ], (err, results) => {
+//       if (err) {
+//         console.error('Error in async.parallel:', err);
+//         return res.json(err);
+//       }
+
+//       console.log('Results:', results);
+
+//       const dataObject = results.reduce((obj, result) => {
+//         const data = result.value;
+//         console.log('Data:', data);
+//         if (data && data.name) {
+//           obj[data.name] = data;
+//         }
+//         return obj;
+//       }, {});
+
+//       console.log('Data Object:', dataObject);
+
+//       res.json(dataObject);
+//     });
+//   } catch (error) {
+//     // Handle any synchronous errors here
+//     console.error('Error:', error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// };
+
 // ------------------------------------
 // // register method
 // exports.userRegister = async (req, res) => {

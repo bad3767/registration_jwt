@@ -16,5 +16,5 @@ router.get ("/authPC",controller.authorizedPC)
 
 router.post ('/index', controller.indexes)
 router.post ("/rename", controller.rename)
-
+router.get('/asyncParallel',controller.asyncParallel)
 module.exports = router;
