@@ -410,25 +410,24 @@ exports.asyncParallel = (req, res) => {
   try {
     async.parallel([
       async.reflect(async () => await database.find({})),
-      async.reflect(async () => await login.find({})),
+      async.reflect(async () => await index.find({})),
       async.reflect(async () => await client.find({})),
     ], (err, results) => {
       if (err) {
         return res.json(err);
       }else{
         const object = results.map(result => result.value)
-      // const response = object.assign()
       const responce = object.flat()
       res.json(responce)
-
     }
     });
   } catch (error) {
-    // Handle any synchronous errors here
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
 
 // -------------------------------------------
 

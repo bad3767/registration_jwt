@@ -45,11 +45,17 @@ app.use(
   })
 );
 
+
 // URLs for the router
 app.use("/user", userRouter);
+
 
 // port configuration with env
 const port = process.env.PORT;
 app.listen(port, function () {
   console.log("localhost:" + port);
 });
+
+
+
+

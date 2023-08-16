@@ -15,7 +15,7 @@ exports.send_email = (email, otp) => {
     subject: "Test mail",
     text: "Your OTP : ",
     otp,
-    html: `<!DOCTYPE html>
+    html:`<!DOCTYPE html>
     <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
